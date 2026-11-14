@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Folder Access">
+  <defs>
+    <linearGradient id="folder" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5b8def"/>
+      <stop offset="1" stop-color="#3a63c8"/>
+    </linearGradient>
+  </defs>
+  <path d="M6 17a5 5 0 0 1 5-5h12l6 6h24a5 5 0 0 1 5 5v26a5 5 0 0 1-5 5H11a5 5 0 0 1-5-5z" fill="url(#folder)"/>
+  <path d="M6 24h52v23a5 5 0 0 1-5 5H11a5 5 0 0 1-5-5z" fill="#ffffff" fill-opacity="0.16"/>
+  <circle cx="46" cy="42" r="11" fill="#ffffff"/>
+  <path d="M46 36.5v11M40.5 42h11" stroke="#3a63c8" stroke-width="3" stroke-linecap="round"/>
+</svg>

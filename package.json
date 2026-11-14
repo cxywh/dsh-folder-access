@@ -1,0 +1,59 @@
+{
+  "name": "dsh-folder-access",
+  "version": "0.1.0",
+  "description": "在对话里把本地文件夹授权给 AI：浏览、读取并编辑其中的文件。",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "folder",
+    "sandbox",
+    "writable-root"
+  ],
+  "type": "module",
+  "main": "lib/index.js",
+  "icon": "icon.svg",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "files": [
+    "lib",
+    "client",
+    "locale",
+    "docs",
+    "icon.svg",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "license": "MIT",
+  "author": "cxywh",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cxywh/dsh-folder-access.git"
+  },
+  "homepage": "https://github.com/cxywh/dsh-folder-access#readme",
+  "bugs": {
+    "url": "https://github.com/cxywh/dsh-folder-access/issues"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "compatibility": {
+      "dshReleases": {
+        "0.2.2-rc.3": "compatible"
+      }
+    },
+    "client": {
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ],
+      "platform": "web"
+    }
+  }
+}

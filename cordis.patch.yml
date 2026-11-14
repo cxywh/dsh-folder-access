@@ -1,0 +1,11 @@
+# dsh-folder-access — 在对话里把本地文件夹授权给 AI（浏览 / 读取 / 编辑）。
+#
+# 宿主半侧：注册 /folder 会话命令，并把「授权文件夹」做成一个 host 能力，
+# 同一个能力同时服务：
+#   - 客户端按钮（浏览器半侧 → /dsh-folder-access/* 路由）
+#   - 会话命令 /folder add|list|remove（用户手输）
+# 授权走 @deepseek-ai/dsh-sandbox-policy 的 registerWritableRoot：
+# 只作用于当前活跃会话，运行时有效，重开应用后需要重新授权。
+- insert:
+    - id: folder-access
+      name: dsh-folder-access

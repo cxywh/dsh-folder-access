@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Folder access",
-    "description": "Hand a local folder to the agent from the conversation, then let it browse and edit files there."
+    "description": "Hand a local folder to the agent from the conversation and let it browse and edit files there; the grant is remembered and applies to new conversations."
   }
 }

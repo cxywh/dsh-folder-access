@@ -36,8 +36,9 @@ window.__ModuleLoader__.load({
     var STRINGS = {
       zh: {
         add: '文件夹',
-        addHint: '把本地文件夹授权给当前对话：AI 可以浏览、读取并编辑其中的文件',
-        granted: '已授权',
+        addHint: '把本地文件夹授权给 AI（可浏览、读取并编辑其中的文件）；授权后新开的对话也生效',
+        granted: '已授权文件夹',
+        scopeHint: '对所有对话生效（包括新开的对话），点 × 取消',
         remove: '取消授权',
         busy: '授权中…',
         pickerUnavailable: '这个环境弹不出文件夹对话框，请直接输入文件夹的绝对路径',
@@ -47,8 +48,9 @@ window.__ModuleLoader__.load({
       },
       en: {
         add: 'Folder',
-        addHint: 'Grant a local folder to this conversation: the agent may browse, read and edit its files',
-        granted: 'Granted',
+        addHint: 'Grant a local folder to the agent (browse, read and edit its files); it stays granted in new conversations',
+        granted: 'Granted folders',
+        scopeHint: 'Applies to every conversation, including new ones — click × to revoke',
         remove: 'Revoke',
         busy: 'Granting…',
         pickerUnavailable: 'No folder dialog in this environment — type the absolute path instead',
@@ -152,6 +154,27 @@ window.__ModuleLoader__.load({
       }, 6000);
     }
 
+    async function loadFolders(sessionId) {
+      if (pending.get(sessionId) === true) return;
+      pending.set(sessionId, true);
+      try {
+        var response = await fetch(api(STATE_URL + '?sessionId=' + encodeURIComponent(sessionId)), {
+          credentials: 'same-origin',
+          headers: { accept: 'application/json' },
+        });
+        if (response.status === 404 || response.status === 405) {
+          showNotice(sessionId, pickStrings().hostMissing.replace('{status}', String(response.status)));
+          return;
+        }
+        var data = await readJson(response);
+        if (data !== undefined && data.ok === true) setFolders(sessionId, data.folders);
+      } catch (error) {
+        // Offline shell or a host without the route: keep whatever we have.
+      } finally {
+        pending.delete(sessionId);
+      }
+    }
+
     function useSessionState(sessionId) {
       var pair = React.useState(0);
       var version = pair[0];
@@ -169,26 +192,15 @@ window.__ModuleLoader__.load({
       }, [sessionId]);
       React.useEffect(function () {
         if (typeof sessionId !== 'string' || sessionId.length === 0) return;
-        if (pending.get(sessionId) === true) return;
-        pending.set(sessionId, true);
-        (async function () {
-          try {
-            var response = await fetch(api(STATE_URL + '?sessionId=' + encodeURIComponent(sessionId)), {
-              credentials: 'same-origin',
-              headers: { accept: 'application/json' },
-            });
-            if (response.status === 404 || response.status === 405) {
-              showNotice(sessionId, pickStrings().hostMissing.replace('{status}', String(response.status)));
-              return;
-            }
-            var data = await readJson(response);
-            if (data !== undefined && data.ok === true) setFolders(sessionId, data.folders);
-          } catch (error) {
-            // Offline shell or a host without the route: keep whatever we have.
-          } finally {
-            pending.delete(sessionId);
-          }
-        })();
+        loadFolders(sessionId);
+        // Grants are profile-wide: another conversation may have changed them.
+        var onFocus = function () {
+          loadFolders(sessionId);
+        };
+        window.addEventListener('focus', onFocus);
+        return function () {
+          window.removeEventListener('focus', onFocus);
+        };
       }, [sessionId]);
       return {
         folders: foldersOfSession(sessionId),
@@ -289,7 +301,9 @@ window.__ModuleLoader__.load({
       return h(
         'div',
         { className: 'dfa-bar' },
-        state.folders.length > 0 ? h('span', { className: 'dfa-bar-label' }, strings.granted) : null,
+        state.folders.length > 0
+          ? h('span', { className: 'dfa-bar-label', title: strings.scopeHint }, strings.granted)
+          : null,
         state.folders.map(function (directory) {
           return h(
             'span',

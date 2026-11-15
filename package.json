@@ -1,7 +1,7 @@
 {
   "name": "dsh-folder-access",
-  "version": "0.2.0",
-  "description": "在对话里把本地文件夹授权给 AI：浏览、读取并编辑其中的文件。",
+  "version": "0.3.0",
+  "description": "在对话里把本地文件夹授权给 AI：浏览、读取并编辑其中的文件，授权后模型立刻知道。",
   "keywords": [
     "dsh",
     "dsh-plugin",

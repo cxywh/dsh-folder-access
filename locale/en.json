@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Folder access",
-    "description": "Hand a local folder to the agent from the conversation and let it browse and edit files there; the grant is remembered and applies to new conversations."
+    "description": "Hand a local folder to the agent from the conversation and let it browse and edit files there; the grant is injected into the model's context right away."
   }
 }

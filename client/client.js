@@ -36,9 +36,9 @@ window.__ModuleLoader__.load({
     var STRINGS = {
       zh: {
         add: '文件夹',
-        addHint: '把本地文件夹授权给 AI（可浏览、读取并编辑其中的文件）；授权后新开的对话也生效',
+        addHint: '把本地文件夹授权给当前对话（可浏览、读取并编辑其中的文件），授权后模型立刻知道',
         granted: '已授权文件夹',
-        scopeHint: '对所有对话生效（包括新开的对话），点 × 取消',
+        scopeHint: '只对这个对话生效，点 × 取消',
         remove: '取消授权',
         busy: '授权中…',
         pickerUnavailable: '这个环境弹不出文件夹对话框，请直接输入文件夹的绝对路径',
@@ -48,9 +48,9 @@ window.__ModuleLoader__.load({
       },
       en: {
         add: 'Folder',
-        addHint: 'Grant a local folder to the agent (browse, read and edit its files); it stays granted in new conversations',
+        addHint: 'Grant a local folder to this conversation (browse, read and edit its files) — the model is told right away',
         granted: 'Granted folders',
-        scopeHint: 'Applies to every conversation, including new ones — click × to revoke',
+        scopeHint: 'Applies to this conversation only — click × to revoke',
         remove: 'Revoke',
         busy: 'Granting…',
         pickerUnavailable: 'No folder dialog in this environment — type the absolute path instead',
@@ -193,7 +193,8 @@ window.__ModuleLoader__.load({
       React.useEffect(function () {
         if (typeof sessionId !== 'string' || sessionId.length === 0) return;
         loadFolders(sessionId);
-        // Grants are profile-wide: another conversation may have changed them.
+        // Grants belong to this conversation; reload in case the user changed
+        // them from /folder or from another window.
         var onFocus = function () {
           loadFolders(sessionId);
         };

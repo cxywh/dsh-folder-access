@@ -43,6 +43,7 @@ window.__ModuleLoader__.load({
         pickerUnavailable: '这个环境弹不出文件夹对话框，请直接输入文件夹的绝对路径',
         needPath: '文件夹的绝对路径（例如 D:\\projects\\demo）',
         unreachable: '连不上宿主进程，文件夹授权不可用',
+        hostMissing: '插件的宿主路由还没挂上（HTTP {status}），重启 DeepSeek Harness 后再试',
       },
       en: {
         add: 'Folder',
@@ -53,6 +54,7 @@ window.__ModuleLoader__.load({
         pickerUnavailable: 'No folder dialog in this environment — type the absolute path instead',
         needPath: 'Absolute path of the folder (for example D:\\projects\\demo)',
         unreachable: 'Cannot reach the host process; folder access is unavailable',
+        hostMissing: 'The plugin routes are not mounted yet (HTTP {status}) — restart DeepSeek Harness and try again',
       },
     };
 
@@ -102,6 +104,10 @@ window.__ModuleLoader__.load({
       });
       var data = await readJson(response);
       if (data !== undefined) return data;
+      if (response.status === 404 || response.status === 405) {
+        var text = pickStrings().hostMissing.replace('{status}', String(response.status));
+        return { ok: false, code: 'host-missing', message: text };
+      }
       return { ok: false, code: 'http-' + response.status, message: 'HTTP ' + response.status };
     }
 
@@ -171,6 +177,10 @@ window.__ModuleLoader__.load({
               credentials: 'same-origin',
               headers: { accept: 'application/json' },
             });
+            if (response.status === 404 || response.status === 405) {
+              showNotice(sessionId, pickStrings().hostMissing.replace('{status}', String(response.status)));
+              return;
+            }
             var data = await readJson(response);
             if (data !== undefined && data.ok === true) setFolders(sessionId, data.folders);
           } catch (error) {

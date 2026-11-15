@@ -78,6 +78,10 @@ dsh-folder-access/
 - 一次只授权一个目录；重复授权同一目录是幂等的。
 - 授权不落盘：重启 DSH 后重新点一次即可。
 
+## 排错：`HTTP 405`
+
+0.1.1 之前，宿主在 `apply()` 里直接读 `webServer` / `commands`。如果 loader 先加载插件、后创建这两个服务，注册会被静默跳过：`/folder` 不存在，点文件夹按钮的 `POST` 落到外壳的静态处理器，于是弹出 `HTTP 405`（`Allow: GET, HEAD`）。现在改为 `ctx.inject(['commands'])` / `ctx.inject(['webServer'])`，服务就绪后再挂载，与加载顺序无关；升级后请重启一次 DeepSeek Harness。
+
 ## English
 
 A small DSH bundle that lets the user hand a folder to the current conversation from the composer. The host half registers the picked directory with `ctx.sandboxPolicy.registerWritableRoot(session, dir)` — a runtime-only, per-session grant that the fs tools honour (on Windows, file tools only, not sandboxed processes) — and exposes it through a `/folder` command plus three same-origin, loopback-only HTTP routes. The browser half adds a folder button and a row of granted-folder chips to the composer slots. MIT licensed.

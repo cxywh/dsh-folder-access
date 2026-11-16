@@ -45,6 +45,7 @@ window.__ModuleLoader__.load({
         needPath: '文件夹的绝对路径（例如 D:\\projects\\demo）',
         unreachable: '连不上宿主进程，文件夹授权不可用',
         hostMissing: '插件的宿主路由还没挂上（HTTP {status}），重启 DeepSeek Harness 后再试',
+        unadmitted: '宿主没有放行这次请求（当前页面没通过认证），刷新页面后再试',
       },
       en: {
         add: 'Folder',
@@ -57,6 +58,7 @@ window.__ModuleLoader__.load({
         needPath: 'Absolute path of the folder (for example D:\\projects\\demo)',
         unreachable: 'Cannot reach the host process; folder access is unavailable',
         hostMissing: 'The plugin routes are not mounted yet (HTTP {status}) — restart DeepSeek Harness and try again',
+        unadmitted: 'The host did not admit this request (this page is not authenticated) — reload the page and try again',
       },
     };
 
@@ -105,7 +107,12 @@ window.__ModuleLoader__.load({
         body: JSON.stringify(body),
       });
       var data = await readJson(response);
-      if (data !== undefined) return data;
+      if (data !== undefined) {
+        if (data.ok === false && data.code === 'unadmitted') {
+          return { ok: false, code: 'unadmitted', message: pickStrings().unadmitted };
+        }
+        return data;
+      }
       if (response.status === 404 || response.status === 405) {
         var text = pickStrings().hostMissing.replace('{status}', String(response.status));
         return { ok: false, code: 'host-missing', message: text };
@@ -167,6 +174,10 @@ window.__ModuleLoader__.load({
           return;
         }
         var data = await readJson(response);
+        if (data !== undefined && data.ok === false && data.code === 'unadmitted') {
+          showNotice(sessionId, pickStrings().unadmitted);
+          return;
+        }
         if (data !== undefined && data.ok === true) setFolders(sessionId, data.folders);
       } catch (error) {
         // Offline shell or a host without the route: keep whatever we have.

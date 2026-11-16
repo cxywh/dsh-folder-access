@@ -40,5 +40,5 @@ DSH 的文件沙箱默认把写操作限制在会话工作区里：`write` / `ed
 
 - 一次授权一个目录；重复授权同一目录是幂等的；
 - 选择框由宿主的 `directoryPicker` 提供，浏览器版选择器下会退化为手动输入路径；
-- 路由只接受 loopback 主机名与同源请求，不经过 `/api` 网关；
+- 路由先过 `ctx.connection.requestRejection(request)`（Host / Origin 围栏 + 已认证 Peer），再校验 loopback 主机名与同源请求；这些 exact 路由不经过 `/api` 网关，准入由插件自己补齐；
 - 授权不写会话日志、不跨对话继承：新对话需要重新授权，避免在别处静默获得写权限。

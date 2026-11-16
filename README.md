@@ -71,7 +71,7 @@ git clone https://github.com/cxywh/dsh-folder-access.git
 
 - 宿主半侧（`lib/index.js`）：`/folder` 命令 + `GET /dsh-folder-access/state`、`POST /dsh-folder-access/add`、`POST /dsh-folder-access/remove` 三个 exact 路由，外加一条 `folder-access:grants` 运行时上下文。UI 与命令走同一套 `grant / revoke` 实现，权限只在这一处被授予。
 - 浏览器半侧（`client/client.js`）：注册到 `conversation.input.left`（按钮）与 `conversation.input.dock`（已授权标签行）两个插槽，只调用上面三个路由。
-- 路由只接受 loopback 主机名与同源请求（`sec-fetch-site` 不是 `cross-site`）；它们不经过 `/api` 网关，因此自带这层校验。
+- 路由先过 DSH 自己的准入校验 `ctx.connection.requestRejection(request)`（Host / Origin 围栏 + 已认证的浏览器 Peer，未通过返回 401/403），再要求 loopback 主机名与同源请求（`sec-fetch-site` 不是 `cross-site`）。这三个路由不经过 `/api` 网关，所以这层校验由插件自己补上；0.3.1 之前只有后一半，浏览器里任意网页都可能往 `127.0.0.1` 发 POST。
 
 ```
 dsh-folder-access/
@@ -96,6 +96,10 @@ dsh-folder-access/
 
 0.1.1 之前，宿主在 `apply()` 里直接读 `webServer` / `commands`。如果 loader 先加载插件、后创建这两个服务，注册会被静默跳过：`/folder` 不存在，点文件夹按钮的 `POST` 落到外壳的静态处理器，于是弹出 `HTTP 405`（`Allow: GET, HEAD`）。现在改为 `ctx.inject(['commands'])` / `ctx.inject(['webServer'])` / `ctx.inject(['systemPrompt'])`，服务就绪后再挂载，与加载顺序无关；升级后请重启一次 DeepSeek Harness。
 
+## 排错：宿主没有放行这次请求
+
+0.3.1 起，三个路由先过 `ctx.connection.requestRejection(request)`：只有持有登录 Cookie 的 DSH 页面才能调用。出现「宿主没有放行这次请求」说明请求没带认证（旧标签页、被代理改写、或从页面外发起的请求），刷新页面即可；用 `curl` 直接打这几个路由现在会得到 401/403，这是预期行为。
+
 ## 排错：授权了但模型还是问路径
 
 按顺序查：
@@ -108,7 +112,7 @@ dsh-folder-access/
 
 ## English
 
-A small DSH bundle that lets the user hand a folder to the agent from the composer. The picked directory is registered with `ctx.sandboxPolicy.registerWritableRoot(session, dir)` for the current conversation, and the same list is published as the `folder-access:grants` runtime context — a dynamic `systemPrompt.context` entry that is re-evaluated on every model request. The next reply therefore already knows which folders it may read and write, without the user repeating the grant. The host exposes a `/folder` command plus three same-origin, loopback-only HTTP routes; the browser half adds a folder button and a row of granted-folder chips. On Windows the grant applies to the file tools only, not to sandboxed processes. MIT licensed.
+A small DSH bundle that lets the user hand a folder to the agent from the composer. The picked directory is registered with `ctx.sandboxPolicy.registerWritableRoot(session, dir)` for the current conversation, and the same list is published as the `folder-access:grants` runtime context — a dynamic `systemPrompt.context` entry that is re-evaluated on every model request. The next reply therefore already knows which folders it may read and write, without the user repeating the grant. The host exposes a `/folder` command plus three HTTP routes; each route first passes DSH's own admission (`ctx.connection.requestRejection`, Host/Origin fence + an authenticated browser peer, otherwise 401/403) and then a loopback/same-origin check. The browser half adds a folder button and a row of granted-folder chips. On Windows the grant applies to the file tools only, not to sandboxed processes. MIT licensed.
 
 ## License
 
